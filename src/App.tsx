@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route, Link } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { Sparkles, Menu, X } from 'lucide-react';
 import Home from './pages/Home';
@@ -27,9 +27,8 @@ const App: React.FC = () => {
   return (
     <HelmetProvider>
       <AuthProvider>
-        <Router>
-          <ScrollToTop />
-          <div className="min-h-screen bg-royal-dark overflow-x-hidden">
+        <ScrollToTop />
+        <div className="min-h-screen bg-royal-dark overflow-x-hidden">
             {/* Header */}
             <header className="bg-royal-dark-card border-b border-royal-dark-lighter">
               <div className="container mx-auto px-4 py-6">
@@ -196,8 +195,7 @@ const App: React.FC = () => {
                 </div>
               </div>
             </footer>
-          </div>
-        </Router>
+        </div>
       </AuthProvider>
     </HelmetProvider>
   );
