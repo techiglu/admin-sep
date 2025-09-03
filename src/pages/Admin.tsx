@@ -53,6 +53,7 @@ const Admin: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [categories, setCategories] = useState<EditingItem[]>([]);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     fetchItems();
@@ -303,6 +304,55 @@ const Admin: React.FC = () => {
     setEditingItem({ ...editingItem, capabilities });
   };
 
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size must be less than 5MB');
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      // Create a unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      
+      // Upload to Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('tool-images')
+        .upload(fileName, file);
+
+      if (error) {
+        console.error('Upload error:', error);
+        toast.error('Failed to upload image');
+        return;
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('tool-images')
+        .getPublicUrl(fileName);
+
+      // Update the editing item with the new image URL
+      setEditingItem({ ...editingItem, image_url: publicUrl });
+      toast.success('Image uploaded successfully!');
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Failed to upload image');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-royal-dark py-12">
       <div className="container mx-auto px-4">
@@ -494,48 +544,48 @@ const Admin: React.FC = () => {
                       </div>
 
                       {/* Content Type Selection */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                          Content Type
-                        </label>
-                        <div className="flex items-center space-x-6">
-                          <label className="flex items-center space-x-2">
-                            <input
-                              type="radio"
-                              name="contentType"
-                              value="human"
-                              checked={editingItem.contentType === 'human' || !editingItem.contentType}
-                              onChange={(e) => setEditingItem({ ...editingItem, contentType: e.target.value })}
-                              className="text-royal-gold"
-                            />
-                            <span className="text-gray-300">Human Created</span>
-                          </label>
-                          <label className="flex items-center space-x-2">
-                            <input
-                              type="radio"
-                              name="contentType"
-                              value="ai"
-                              checked={editingItem.contentType === 'ai'}
-                              onChange={(e) => setEditingItem({ ...editingItem, contentType: e.target.value })}
-                              className="text-royal-gold"
-                            />
-                            <span className="text-gray-300">AI Generated</span>
-                          </label>
-                        </div>
-                      </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                          Image URL
-                        </label>
-                        <input
-                          type="text"
-                          value={editingItem.image_url || ''}
-                          onChange={(e) => setEditingItem({ ...editingItem, image_url: e.target.value })}
-                          className="w-full px-4 py-2 bg-royal-dark border border-royal-dark-lighter rounded-lg text-white focus:outline-none focus:border-royal-gold"
-                          placeholder="https://example.com/image.jpg"
-                        />
-                      </div>
+                      {/* Image Upload for Tools */}
+                      {activeTab === 'tools' && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Tool Image
+                          </label>
+                          <div className="space-y-4">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleImageUpload}
+                              className="w-full px-4 py-2 bg-royal-dark border border-royal-dark-lighter rounded-lg text-white focus:outline-none focus:border-royal-gold file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-royal-gold file:text-royal-dark hover:file:bg-royal-gold/90"
+                            />
+                            {editingItem.image_url && (
+                              <div className="mt-2">
+                                <img
+                                  src={editingItem.image_url}
+                                  alt="Preview"
+                                  className="w-32 h-32 object-cover rounded-lg border border-royal-dark-lighter"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Image URL for Categories and Agents */}
+                      {activeTab !== 'tools' && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Image URL
+                          </label>
+                          <input
+                            type="text"
+                            value={editingItem.image_url || ''}
+                            onChange={(e) => setEditingItem({ ...editingItem, image_url: e.target.value })}
+                            className="w-full px-4 py-2 bg-royal-dark border border-royal-dark-lighter rounded-lg text-white focus:outline-none focus:border-royal-gold"
+                            placeholder="https://example.com/image.jpg"
+                          />
+                        </div>
+                      )}
 
                       {/* Tool-specific fields */}
                       {activeTab === 'tools' && (
