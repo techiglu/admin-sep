@@ -573,8 +573,8 @@ const Admin: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Image URL for Categories and Agents */}
-                      {activeTab !== 'tools' && (
+                      {/* Image URL for Agents only */}
+                      {activeTab === 'agents' && (
                         <div>
                           <label className="block text-sm font-medium text-gray-300 mb-2">
                             Image URL
