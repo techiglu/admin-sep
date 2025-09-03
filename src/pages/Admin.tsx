@@ -164,7 +164,7 @@ const Admin: React.FC = () => {
           category_id: editingItem.category_id,
           features: editingItem.features || [],
           useCases: editingItem.useCases || [],
-          howToUse: editingItem.howToUse?.trim() || null,
+          how_to_use: editingItem.how_to_use?.trim() || null,
           pricing: editingItem.pricing || []
         };
       } else if (activeTab === 'agents') {
