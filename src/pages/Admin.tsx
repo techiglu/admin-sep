@@ -478,58 +478,6 @@ const Admin: React.FC = () => {
                 </div>
 
                 {/* How to Use Section */}
-                <div className="bg-royal-dark-card rounded-xl p-6 border border-royal-dark-lighter mb-6">
-                  <h3 className="text-lg font-semibold mb-4">How to Use Admin Panel</h3>
-                  <div className="space-y-4 text-sm text-gray-300">
-                    <div>
-                      <h4 className="font-medium text-white mb-2">Quick Start Guide:</h4>
-                      <ul className="list-disc list-inside space-y-1 text-gray-400">
-                        <li>Click the "+" button to add new tools, categories, or agents</li>
-                        <li>Fill in all required fields (marked with "*")</li>
-                        <li>Add SEO title and description for better search rankings</li>
-                        <li>Use high-quality images (1200x630px recommended)</li>
-                        <li>Save and publish your content</li>
-                      </ul>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-white mb-2">Adding New Items:</h4>
-                      <ul className="list-disc list-inside space-y-1 text-gray-400">
-                        <li>Click the "+" button next to "Items" to create new tools, categories, or agents</li>
-                        <li>Fill in all required fields marked with "*"</li>
-                        <li>Add SEO title and description for better search rankings</li>
-                        <li>Use high-quality images (preferably 1200x630px for tools)</li>
-                      </ul>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-white mb-2">Managing Content:</h4>
-                      <ul className="list-disc list-inside space-y-1 text-gray-400">
-                        <li>Use the search bar to quickly find specific items</li>
-                        <li>Click on any item in the list to edit it</li>
-                        <li>For tools: Add features, use cases, and pricing information</li>
-                        <li>For agents: Configure capabilities and availability settings</li>
-                      </ul>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-white mb-2">Best Practices:</h4>
-                      <ul className="list-disc list-inside space-y-1 text-gray-400">
-                        <li>Keep descriptions concise but informative (150-200 characters)</li>
-                        <li>Use consistent naming conventions</li>
-                        <li>Add pricing information to help users make decisions</li>
-                        <li>Regularly update tool information to keep it current</li>
-                      </ul>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-white mb-2">Content Guidelines:</h4>
-                      <ul className="list-disc list-inside space-y-1 text-gray-400">
-                        <li>Write clear, descriptive titles and descriptions</li>
-                        <li>Add accurate pricing information when available</li>
-                        <li>Include relevant features and use cases</li>
-                        <li>Use proper categorization for better discoverability</li>
-                        <li>Ensure all links are working and up-to-date</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
 
                 <div className="space-y-6 max-h-[70vh] overflow-y-auto">
                   {/* Basic Info */}
@@ -692,8 +640,8 @@ const Admin: React.FC = () => {
                             <label className="block text-sm font-medium text-gray-300 mb-2">
                               User Count
                             </label>
-                            <input
-                              type="number"
+                              value={editingItem.how_to_use || ''}
+                              onChange={(e) => setEditingItem({ ...editingItem, how_to_use: e.target.value })}
                               value={editingItem.user_count || 0}
                               onChange={(e) => setEditingItem({ ...editingItem, user_count: parseInt(e.target.value) || 0 })}
                               className="w-full px-4 py-2 bg-royal-dark border border-royal-dark-lighter rounded-lg text-white focus:outline-none focus:border-royal-gold"
