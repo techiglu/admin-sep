@@ -27,7 +27,7 @@ interface EditingItem {
   seo_description?: string;
   features?: Feature[];
   useCases?: UseCase[];
-  howToUse?: string;
+  how_to_use?: string;
   pricing?: PricingPlan[];
   type?: 'tool' | 'category' | 'agent';
   image_url?: string;
