@@ -852,11 +852,11 @@ const Admin: React.FC = () => {
                     <div className="border-t border-royal-dark-lighter pt-6">
                       <h3 className="text-lg font-semibold mb-4">How to Use</h3>
                       <textarea
-                        value={editingItem.howToUse || ''}
-                        onChange={(e) => setEditingItem({ ...editingItem, howToUse: e.target.value })}
+                        value={editingItem.how_to_use || ''}
+                        onChange={(e) => setEditingItem({ ...editingItem, how_to_use: e.target.value })}
                         placeholder="Enter step-by-step instructions on how to use this tool..."
                         rows={6}
-                        className="w-full px-4 py-2 bg-royal-dark border border-royal-dark-lighter rounded-lg text-white focus:outline-none focus:border-royal-gold"
+                        className="w-full px-4 py-2 bg-royal-dark border border-royal-dark-lighter rounded-lg text-white focus:outline-none focus:border-royal-gold resize-vertical"
                       />
                     </div>
                   )}
