@@ -75,7 +75,7 @@ function Home() {
         
         // Set a timeout for the entire operation
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Request timeout')), 5000)
+          setTimeout(() => reject(new Error('Request timeout')), 10000)
         );
 
         // Fetch data with timeout
