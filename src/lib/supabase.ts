@@ -8,11 +8,8 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Validate environment variables
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase environment variables are not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.');
+  throw new Error('Supabase environment variables are not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.');
 }
 
 // Create Supabase client
-export const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder-key'
-);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);

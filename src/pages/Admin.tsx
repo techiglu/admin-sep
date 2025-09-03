@@ -75,24 +75,50 @@ const Admin: React.FC = () => {
   }, [searchTerm, items]);
 
   const fetchCategories = async () => {
-    const { data } = await supabase
-      .from('categories')
-      .select('*')
-      .order('name');
-    
-    if (data) setCategories(data);
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name');
+      
+      if (error) {
+        console.error('Error fetching categories:', error);
+        toast.error('Failed to load categories');
+        return;
+      }
+      
+      if (data) setCategories(data);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      toast.error('Failed to connect to database');
+    }
   };
 
   const fetchItems = async () => {
     setLoading(true);
-    let { data: items } = await supabase
-      .from(activeTab)
-      .select('*')
-      .order('created_at', { ascending: false });
-    
-    setItems(items || []);
-    setFilteredItems(items || []);
-    setLoading(false);
+    try {
+      const { data: items, error } = await supabase
+        .from(activeTab)
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching items:', error);
+        toast.error(`Failed to load ${activeTab}`);
+        setItems([]);
+        setFilteredItems([]);
+      } else {
+        setItems(items || []);
+        setFilteredItems(items || []);
+      }
+    } catch (error) {
+      console.error('Error fetching items:', error);
+      toast.error('Failed to connect to database');
+      setItems([]);
+      setFilteredItems([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const validateForm = (item: EditingItem): string | null => {
