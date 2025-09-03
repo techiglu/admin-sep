@@ -13,6 +13,11 @@ interface UseCase {
   description: string;
 }
 
+interface HowToUseStep {
+  title: string;
+  description: string;
+}
+
 interface PricingPlan {
   plan: string;
   price: string;
@@ -27,6 +32,7 @@ interface EditingItem {
   seo_description?: string;
   features?: Feature[];
   useCases?: UseCase[];
+  howToUse?: HowToUseStep[];
   pricing?: PricingPlan[];
   type?: 'tool' | 'category' | 'agent';
   image_url?: string;
@@ -163,6 +169,7 @@ const Admin: React.FC = () => {
           category_id: editingItem.category_id,
           features: editingItem.features || [],
           useCases: editingItem.useCases || [],
+          howToUse: editingItem.howToUse || [],
           pricing: editingItem.pricing || []
         };
       } else if (activeTab === 'agents') {
@@ -256,6 +263,29 @@ const Admin: React.FC = () => {
     const useCases = [...editingItem.useCases];
     useCases[index] = { ...useCases[index], [field]: value };
     setEditingItem({ ...editingItem, useCases });
+  };
+
+  const addHowToUseStep = () => {
+    if (!editingItem) return;
+    const howToUse = editingItem.howToUse || [];
+    setEditingItem({
+      ...editingItem,
+      howToUse: [...howToUse, { title: '', description: '' }]
+    });
+  };
+
+  const removeHowToUseStep = (index: number) => {
+    if (!editingItem?.howToUse) return;
+    const howToUse = [...editingItem.howToUse];
+    howToUse.splice(index, 1);
+    setEditingItem({ ...editingItem, howToUse });
+  };
+
+  const updateHowToUseStep = (index: number, field: keyof HowToUseStep, value: string) => {
+    if (!editingItem?.howToUse) return;
+    const howToUse = [...editingItem.howToUse];
+    howToUse[index] = { ...howToUse[index], [field]: value };
+    setEditingItem({ ...editingItem, howToUse });
   };
 
   const addPricingPlan = () => {
@@ -868,6 +898,49 @@ const Admin: React.FC = () => {
                               value={useCase.description}
                               onChange={(e) => updateUseCase(index, 'description', e.target.value)}
                               placeholder="Use case description"
+                              rows={2}
+                              className="w-full px-4 py-2 bg-royal-dark-lighter border border-royal-dark-lighter rounded-lg text-white focus:outline-none focus:border-royal-gold"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* How to Use (for tools) */}
+                  {activeTab === 'tools' && (
+                    <div className="border-t border-royal-dark-lighter pt-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold">How to Use</h3>
+                        <button
+                          onClick={addHowToUseStep}
+                          className="text-royal-gold hover:text-royal-gold/80"
+                        >
+                          <Plus className="w-5 h-5" />
+                        </button>
+                      </div>
+                      <div className="space-y-4">
+                        {editingItem.howToUse?.map((step, index) => (
+                          <div key={index} className="bg-royal-dark p-4 rounded-lg">
+                            <div className="flex justify-between items-start mb-2">
+                              <input
+                                type="text"
+                                value={step.title}
+                                onChange={(e) => updateHowToUseStep(index, 'title', e.target.value)}
+                                placeholder="Step title"
+                                className="flex-1 px-4 py-2 bg-royal-dark-lighter border border-royal-dark-lighter rounded-lg text-white focus:outline-none focus:border-royal-gold mr-4"
+                              />
+                              <button
+                                onClick={() => removeHowToUseStep(index)}
+                                className="text-gray-400 hover:text-red-500"
+                              >
+                                <X className="w-5 h-5" />
+                              </button>
+                            </div>
+                            <textarea
+                              value={step.description}
+                              onChange={(e) => updateHowToUseStep(index, 'description', e.target.value)}
+                              placeholder="Step description"
                               rows={2}
                               className="w-full px-4 py-2 bg-royal-dark-lighter border border-royal-dark-lighter rounded-lg text-white focus:outline-none focus:border-royal-gold"
                             />
