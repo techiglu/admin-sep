@@ -343,13 +343,13 @@ const Admin: React.FC = () => {
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       
       // Upload to Supabase Storage
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from('tool-images')
         .upload(fileName, file);
 
       if (error) {
         console.error('Upload error:', error);
-        toast.error('Failed to upload image');
+        toast.error('Failed to upload image: ' + error.message);
         return;
       }
 
@@ -359,7 +359,9 @@ const Admin: React.FC = () => {
         .getPublicUrl(fileName);
 
       // Update the editing item with the new image URL
-      setEditingItem({ ...editingItem, image_url: publicUrl });
+      if (editingItem) {
+        setEditingItem({ ...editingItem, image_url: publicUrl });
+      }
       toast.success('Image uploaded successfully!');
     } catch (error) {
       console.error('Error uploading image:', error);
@@ -572,8 +574,12 @@ const Admin: React.FC = () => {
                               type="file"
                               accept="image/*"
                               onChange={handleImageUpload}
+                              disabled={uploadingImage}
                               className="w-full px-4 py-2 bg-royal-dark border border-royal-dark-lighter rounded-lg text-white focus:outline-none focus:border-royal-gold file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-royal-gold file:text-royal-dark hover:file:bg-royal-gold/90"
                             />
+                            {uploadingImage && (
+                              <div className="text-royal-gold text-sm">Uploading image...</div>
+                            )}
                             {editingItem.image_url && (
                               <div className="mt-2">
                                 <img
