@@ -640,8 +640,8 @@ const Admin: React.FC = () => {
                             <label className="block text-sm font-medium text-gray-300 mb-2">
                               User Count
                             </label>
-                              value={editingItem.how_to_use || ''}
-                              onChange={(e) => setEditingItem({ ...editingItem, how_to_use: e.target.value })}
+                            <input
+                              type="number"
                               value={editingItem.user_count || 0}
                               onChange={(e) => setEditingItem({ ...editingItem, user_count: parseInt(e.target.value) || 0 })}
                               className="w-full px-4 py-2 bg-royal-dark border border-royal-dark-lighter rounded-lg text-white focus:outline-none focus:border-royal-gold"
