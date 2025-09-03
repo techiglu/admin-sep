@@ -132,6 +132,12 @@ const Admin: React.FC = () => {
       if (!item.category_id) return 'Category is required';
     }
     
+    if (activeTab === 'agents') {
+      if (!item.capabilities || item.capabilities.length === 0) {
+        return 'At least one capability is required';
+      }
+    }
+    
     return null;
   };
 
@@ -178,6 +184,14 @@ const Admin: React.FC = () => {
           user_count: editingItem.user_count || 0,
           has_fast_response: editingItem.has_fast_response || false,
           is_secure: editingItem.is_secure || false
+        };
+      } else if (activeTab === 'categories') {
+        // For categories, only include basic fields
+        dataToSave = {
+          name: editingItem.name?.trim(),
+          description: editingItem.description?.trim(),
+          seo_title: editingItem.seo_title?.trim() || null,
+          seo_description: editingItem.seo_description?.trim() || null
         };
       }
 
