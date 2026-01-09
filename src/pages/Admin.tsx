@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Sparkles, Bot, Search, Save, Plus, X, LogOut } from 'lucide-react';
+import { Sparkles, Bot, Search, Save, Plus, X, LogOut, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 
@@ -247,7 +247,8 @@ const Admin: React.FC = () => {
           name: editingItem.name?.trim(),
           description: editingItem.description?.trim(),
           seo_title: editingItem.seo_title?.trim() || null,
-          seo_description: editingItem.seo_description?.trim() || null
+          seo_description: editingItem.seo_description?.trim() || null,
+          image_url: editingItem.image_url?.trim() || null
         };
       }
 
@@ -281,6 +282,37 @@ const Admin: React.FC = () => {
       toast.error('Error saving item');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from(activeTab)
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error deleting:', error);
+        toast.error('Error deleting item: ' + error.message);
+        return;
+      }
+
+      toast.success(`${activeTab.slice(0, -1)} deleted successfully!`);
+
+      // Clear editing item if it was the deleted one
+      if (editingItem?.id === id) {
+        setEditingItem(null);
+      }
+
+      fetchItems();
+    } catch (error) {
+      console.error('Error deleting:', error);
+      toast.error('Error deleting item');
     }
   };
 
@@ -575,18 +607,34 @@ const Admin: React.FC = () => {
             ) : (
               <div className="space-y-4 max-h-96 overflow-y-auto">
                 {filteredItems.map((item) => (
-                  <button
+                  <div
                     key={item.id}
-                    onClick={() => setEditingItem(item)}
-                    className={`w-full text-left p-4 rounded-lg transition-colors ${
+                    className={`p-4 rounded-lg transition-colors ${
                       editingItem?.id === item.id
                         ? 'bg-royal-gold/10 border border-royal-gold'
                         : 'bg-royal-dark hover:bg-royal-dark-lighter'
                     }`}
                   >
-                    <h3 className="font-medium text-white">{item.name}</h3>
-                    <p className="text-sm text-gray-400 line-clamp-2">{item.description}</p>
-                  </button>
+                    <div className="flex items-start justify-between">
+                      <button
+                        onClick={() => setEditingItem(item)}
+                        className="flex-1 text-left"
+                      >
+                        <h3 className="font-medium text-white">{item.name}</h3>
+                        <p className="text-sm text-gray-400 line-clamp-2">{item.description}</p>
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(item.id, item.name);
+                        }}
+                        className="ml-2 p-2 text-gray-400 hover:text-red-500 transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
                 ))}
                 {filteredItems.length === 0 && (
                   <div className="text-center text-gray-400 py-8">
@@ -605,14 +653,25 @@ const Admin: React.FC = () => {
                   <h2 className="text-xl font-bold">
                     {editingItem.id ? 'Edit Item' : 'New Item'}
                   </h2>
-                  <button
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="flex items-center space-x-2 bg-royal-gold text-royal-dark px-4 py-2 rounded-lg hover:bg-opacity-90 transition-colors disabled:opacity-50"
-                  >
-                    <Save className="w-5 h-5" />
-                    <span>{saving ? 'Saving...' : 'Save & Publish'}</span>
-                  </button>
+                  <div className="flex items-center space-x-3">
+                    {editingItem.id && (
+                      <button
+                        onClick={() => handleDelete(editingItem.id!, editingItem.name!)}
+                        className="flex items-center space-x-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                        <span>Delete</span>
+                      </button>
+                    )}
+                    <button
+                      onClick={handleSave}
+                      disabled={saving}
+                      className="flex items-center space-x-2 bg-royal-gold text-royal-dark px-4 py-2 rounded-lg hover:bg-opacity-90 transition-colors disabled:opacity-50"
+                    >
+                      <Save className="w-5 h-5" />
+                      <span>{saving ? 'Saving...' : 'Save & Publish'}</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* How to Use Section */}
@@ -679,8 +738,8 @@ const Admin: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Image URL for Agents only */}
-                      {activeTab === 'agents' && (
+                      {/* Image URL for Agents and Categories */}
+                      {(activeTab === 'agents' || activeTab === 'categories') && (
                         <div>
                           <label className="block text-sm font-medium text-gray-300 mb-2">
                             Image URL
