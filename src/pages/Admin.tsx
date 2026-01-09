@@ -134,18 +134,37 @@ const Admin: React.FC = () => {
 
   const fetchCategories = async () => {
     try {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name');
-      
-      if (error) {
-        console.error('Error fetching categories:', error);
-        toast.error('Failed to load categories');
-        return;
+      const allCategories: EditingItem[] = [];
+      let from = 0;
+      const batchSize = 1000;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data, error } = await supabase
+          .from('categories')
+          .select('*')
+          .order('name')
+          .range(from, from + batchSize - 1);
+
+        if (error) {
+          console.error('Error fetching categories:', error);
+          toast.error('Failed to load categories');
+          return;
+        }
+
+        if (data && data.length > 0) {
+          allCategories.push(...data);
+          from += batchSize;
+
+          if (data.length < batchSize) {
+            hasMore = false;
+          }
+        } else {
+          hasMore = false;
+        }
       }
-      
-      if (data) setCategories(data);
+
+      setCategories(allCategories);
     } catch (error) {
       console.error('Error fetching categories:', error);
       toast.error('Failed to connect to database');
@@ -155,20 +174,41 @@ const Admin: React.FC = () => {
   const fetchItems = async () => {
     setLoading(true);
     try {
-      const { data: items, error } = await supabase
-        .from(activeTab)
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) {
-        console.error('Error fetching items:', error);
-        toast.error(`Failed to load ${activeTab}`);
-        setItems([]);
-        setFilteredItems([]);
-      } else {
-        setItems(items || []);
-        setFilteredItems(items || []);
+      const allItems: EditingItem[] = [];
+      let from = 0;
+      const batchSize = 1000;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data: items, error } = await supabase
+          .from(activeTab)
+          .select('*')
+          .order('created_at', { ascending: false })
+          .range(from, from + batchSize - 1);
+
+        if (error) {
+          console.error('Error fetching items:', error);
+          toast.error(`Failed to load ${activeTab}`);
+          setItems([]);
+          setFilteredItems([]);
+          return;
+        }
+
+        if (items && items.length > 0) {
+          allItems.push(...items);
+          from += batchSize;
+
+          if (items.length < batchSize) {
+            hasMore = false;
+          }
+        } else {
+          hasMore = false;
+        }
       }
+
+      setItems(allItems);
+      setFilteredItems(allItems);
+      toast.success(`Loaded ${allItems.length} ${activeTab}`);
     } catch (error) {
       console.error('Error fetching items:', error);
       toast.error('Failed to connect to database');
@@ -605,7 +645,11 @@ const Admin: React.FC = () => {
             {loading ? (
               <div className="text-center text-gray-400">Loading...</div>
             ) : (
-              <div className="space-y-4 max-h-96 overflow-y-auto">
+              <>
+                <div className="text-xs text-gray-400 mb-2">
+                  Showing {filteredItems.length} of {items.length} items
+                </div>
+                <div className="space-y-4 max-h-[600px] overflow-y-auto">
                 {filteredItems.map((item) => (
                   <div
                     key={item.id}
@@ -641,7 +685,8 @@ const Admin: React.FC = () => {
                     {searchTerm ? 'No items found matching your search' : 'No items found'}
                   </div>
                 )}
-              </div>
+                </div>
+              </>
             )}
           </div>
 
