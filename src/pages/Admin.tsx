@@ -51,6 +51,7 @@ const Admin: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isSignupMode, setIsSignupMode] = useState(false);
   const [activeTab, setActiveTab] = useState<'tools' | 'categories' | 'agents'>('tools');
   const [items, setItems] = useState<EditingItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<EditingItem[]>([]);
@@ -88,18 +89,32 @@ const Admin: React.FC = () => {
     setIsLoggingIn(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      if (isSignupMode) {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
 
-      if (error) {
-        toast.error('Login failed: ' + error.message);
+        if (error) {
+          toast.error('Signup failed: ' + error.message);
+        } else {
+          toast.success('Account created! You can now login.');
+          setIsSignupMode(false);
+        }
       } else {
-        toast.success('Logged in successfully!');
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) {
+          toast.error('Login failed: ' + error.message);
+        } else {
+          toast.success('Logged in successfully!');
+        }
       }
     } catch (error) {
-      toast.error('An error occurred during login');
+      toast.error('An error occurred');
     } finally {
       setIsLoggingIn(false);
     }
@@ -417,8 +432,12 @@ const Admin: React.FC = () => {
       <div className="min-h-screen bg-royal-dark flex items-center justify-center py-12 px-4">
         <div className="max-w-md w-full bg-royal-dark-card rounded-xl p-8 border border-royal-dark-lighter">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold gradient-text mb-2">Admin Login</h1>
-            <p className="text-gray-400">Sign in to access the admin dashboard</p>
+            <h1 className="text-3xl font-bold gradient-text mb-2">
+              {isSignupMode ? 'Create Admin Account' : 'Admin Login'}
+            </h1>
+            <p className="text-gray-400">
+              {isSignupMode ? 'Create your admin account' : 'Sign in to access the admin dashboard'}
+            </p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
@@ -445,9 +464,13 @@ const Admin: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                minLength={6}
                 className="w-full px-4 py-2 bg-royal-dark border border-royal-dark-lighter rounded-lg text-white focus:outline-none focus:border-royal-gold"
                 placeholder="••••••••"
               />
+              {isSignupMode && (
+                <p className="text-xs text-gray-400 mt-1">Password must be at least 6 characters</p>
+              )}
             </div>
 
             <button
@@ -455,8 +478,18 @@ const Admin: React.FC = () => {
               disabled={isLoggingIn}
               className="w-full bg-royal-gold text-royal-dark px-6 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-colors disabled:opacity-50"
             >
-              {isLoggingIn ? 'Signing in...' : 'Sign In'}
+              {isLoggingIn ? (isSignupMode ? 'Creating Account...' : 'Signing in...') : (isSignupMode ? 'Create Account' : 'Sign In')}
             </button>
+
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => setIsSignupMode(!isSignupMode)}
+                className="text-royal-gold hover:underline text-sm"
+              >
+                {isSignupMode ? 'Already have an account? Sign in' : 'Need an account? Sign up'}
+              </button>
+            </div>
           </form>
         </div>
       </div>
