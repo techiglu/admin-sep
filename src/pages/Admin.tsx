@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Sparkles, Bot, Search, Save, Plus, X } from 'lucide-react';
+import { Sparkles, Bot, Search, Save, Plus, X, LogOut } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
 
 interface Feature {
   title: string;
@@ -46,6 +47,10 @@ interface EditingItem {
 }
 
 const Admin: React.FC = () => {
+  const { session } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [activeTab, setActiveTab] = useState<'tools' | 'categories' | 'agents'>('tools');
   const [items, setItems] = useState<EditingItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<EditingItem[]>([]);
@@ -57,11 +62,13 @@ const Admin: React.FC = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
-    fetchItems();
-    if (activeTab === 'tools') {
-      fetchCategories();
+    if (session) {
+      fetchItems();
+      if (activeTab === 'tools') {
+        fetchCategories();
+      }
     }
-  }, [activeTab]);
+  }, [activeTab, session]);
 
   useEffect(() => {
     // Filter items based on search term
@@ -75,6 +82,40 @@ const Admin: React.FC = () => {
       setFilteredItems(filtered);
     }
   }, [searchTerm, items]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoggingIn(true);
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        toast.error('Login failed: ' + error.message);
+      } else {
+        toast.success('Logged in successfully!');
+      }
+    } catch (error) {
+      toast.error('An error occurred during login');
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success('Logged out successfully');
+      setEditingItem(null);
+      setItems([]);
+      setFilteredItems([]);
+    } catch (error) {
+      toast.error('Error logging out');
+    }
+  };
 
   const fetchCategories = async () => {
     try {
@@ -371,40 +412,104 @@ const Admin: React.FC = () => {
     }
   };
 
+  if (!session) {
+    return (
+      <div className="min-h-screen bg-royal-dark flex items-center justify-center py-12 px-4">
+        <div className="max-w-md w-full bg-royal-dark-card rounded-xl p-8 border border-royal-dark-lighter">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold gradient-text mb-2">Admin Login</h1>
+            <p className="text-gray-400">Sign in to access the admin dashboard</p>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full px-4 py-2 bg-royal-dark border border-royal-dark-lighter rounded-lg text-white focus:outline-none focus:border-royal-gold"
+                placeholder="admin@example.com"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full px-4 py-2 bg-royal-dark border border-royal-dark-lighter rounded-lg text-white focus:outline-none focus:border-royal-gold"
+                placeholder="••••••••"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoggingIn}
+              className="w-full bg-royal-gold text-royal-dark px-6 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-colors disabled:opacity-50"
+            >
+              {isLoggingIn ? 'Signing in...' : 'Sign In'}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-royal-dark py-12">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold gradient-text">Admin Dashboard</h1>
-          <div className="flex space-x-4">
+          <div className="flex items-center space-x-4">
+            <span className="text-gray-400 text-sm">
+              {session.user.email}
+            </span>
             <button
-              onClick={() => setActiveTab('tools')}
-              className={`px-4 py-2 rounded-lg flex items-center space-x-2 ${
-                activeTab === 'tools' ? 'bg-royal-gold text-royal-dark' : 'text-gray-400 hover:text-white'
-              }`}
+              onClick={handleLogout}
+              className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
             >
-              <Search className="w-5 h-5" />
-              <span>Tools</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('categories')}
-              className={`px-4 py-2 rounded-lg flex items-center space-x-2 ${
-                activeTab === 'categories' ? 'bg-royal-gold text-royal-dark' : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              <Sparkles className="w-5 h-5" />
-              <span>Categories</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('agents')}
-              className={`px-4 py-2 rounded-lg flex items-center space-x-2 ${
-                activeTab === 'agents' ? 'bg-royal-gold text-royal-dark' : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              <Bot className="w-5 h-5" />
-              <span>Agents</span>
+              <LogOut className="w-5 h-5" />
+              <span>Logout</span>
             </button>
           </div>
+        </div>
+
+        <div className="flex space-x-4 mb-8">
+          <button
+            onClick={() => setActiveTab('tools')}
+            className={`px-4 py-2 rounded-lg flex items-center space-x-2 ${
+              activeTab === 'tools' ? 'bg-royal-gold text-royal-dark' : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            <Search className="w-5 h-5" />
+            <span>Tools</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('categories')}
+            className={`px-4 py-2 rounded-lg flex items-center space-x-2 ${
+              activeTab === 'categories' ? 'bg-royal-gold text-royal-dark' : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            <Sparkles className="w-5 h-5" />
+            <span>Categories</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('agents')}
+            className={`px-4 py-2 rounded-lg flex items-center space-x-2 ${
+              activeTab === 'agents' ? 'bg-royal-gold text-royal-dark' : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            <Bot className="w-5 h-5" />
+            <span>Agents</span>
+          </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
